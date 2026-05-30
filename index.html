@@ -458,7 +458,7 @@ function sheetGoal(){
 
 /* ---------- events ---------- */
 document.addEventListener('click',e=>{
-  const t=e.target.closest('[data-nav],[data-mo],[data-fab],[data-del],[data-goal],[data-acct],[data-newacct],[data-editgoal],[data-newgoal],[data-bg],[data-close],[data-type],[data-cat],[data-acc],[data-from],[data-to],[data-gl],[data-save],[data-acctype],[data-acctsave],[data-acctdel],[data-opencats],[data-clearall],[data-newcat],[data-editcat],[data-catkind],[data-color],[data-catsave],[data-catdel],[data-goalsave],[data-goaldel],#settings]');
+  const t=e.target.closest('[data-nav],[data-mo],[data-fab],[data-del],[data-goal],[data-acct],[data-newacct],[data-editgoal],[data-newgoal],[data-bg],[data-close],[data-type],[data-cat],[data-acc],[data-from],[data-to],[data-gl],[data-save],[data-acctype],[data-acctsave],[data-acctdel],[data-opencats],[data-clearall],[data-newcat],[data-editcat],[data-catkind],[data-color],[data-catsave],[data-catdel],[data-goalsave],[data-goaldel],#settings');
   if(!t)return;
   // header / nav
   if(t.id==='settings'){openSettings();return;}
