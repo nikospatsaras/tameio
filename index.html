@@ -108,6 +108,22 @@ h3{font-size:20px;font-weight:600;margin:24px 0 8px}
 .fin{width:100%;border-radius:12px;padding:10px 12px;font-size:14px;outline:none;background:var(--card);border:1px solid var(--line);color:var(--ink);margin-bottom:16px}
 .savebtn{width:100%;padding:16px;border-radius:16px;font-weight:700;font-size:16px;transition:.1s}
 .savebtn:active{transform:scale(.99)}
+.acccard{flex:1;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:8px 12px;cursor:pointer}
+.acccard:active{transform:scale(.97)}
+.addacc{flex:0 0 auto;width:40px;border:1px dashed var(--line);border-radius:16px;color:var(--sub);display:flex;align-items:center;justify-content:center}
+.setrow{display:flex;align-items:center;justify-content:space-between;width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;font-weight:600;font-size:15px;color:var(--ink)}
+.setrow.danger{color:var(--expense)}
+.catrow{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.catrow .nm{flex:1;font-weight:600;font-size:14px}
+.catrow .ed{color:var(--sub);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.catrow .ed:hover{background:rgba(0,0,0,.05)}
+.swatches{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.swatch{width:30px;height:30px;border-radius:50%;border:2px solid transparent}
+.swatch.sel{border-color:var(--ink);box-shadow:0 0 0 2px var(--paper) inset}
+.delbtn{width:100%;padding:14px;border-radius:14px;font-weight:700;background:var(--expenseBg);color:var(--expense);margin-top:10px}
+.miniadd{width:100%;padding:14px;border-radius:14px;font-weight:700;background:var(--ink);color:var(--paper);margin-top:8px}
+.grouplab{font-size:12px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 8px}
+.goaledit{color:var(--sub);width:30px;height:30px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 svg{display:block}
 </style>
 
@@ -118,7 +134,7 @@ svg{display:block}
         <div class="lab">Συνολικό υπόλοιπο</div>
         <div class="serif nw" id="nw">€0</div>
       </div>
-      <button class="iconbtn" id="reset" title="Επαναφορά">↻</button>
+      <button class="iconbtn" id="settings" title="Ρυθμίσεις"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="2"/><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1M18.7 18.7l-2.1-2.1M7.4 7.4 5.3 5.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     </div>
     <div class="accrow" id="accrow"></div>
   </div>
@@ -140,7 +156,10 @@ const I = {
   grid:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/>',
   list:'<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
   target:'<circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="3.5" stroke="currentColor" stroke-width="2" fill="none"/>',
-  pig:'<path d="M4 11a6 6 0 0 1 12 0v3H4zM16 11l4-2v6l-4-2" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/>'
+  pig:'<path d="M4 11a6 6 0 0 1 12 0v3H4zM16 11l4-2v6l-4-2" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/>',
+  gear:'<circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1M18.7 18.7l-2.1-2.1M7.4 7.4 5.3 5.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  edit:'<path d="M4 20h4L19 9l-4-4L4 16v4Z" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/><path d="M14 6l4 4" stroke="currentColor" stroke-width="2"/>',
+  trash:'<path d="M5 7h14M9 7V5h6v2M6.5 7l1 13h9l1-13" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/>'
 };
 const icon=(n,s=20)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none">${I[n]}</svg>`;
 
@@ -194,13 +213,21 @@ function seed(){
 
 /* ---------- state ---------- */
 const STORE='finance-tracker-v1';
-function loadState(){try{const r=localStorage.getItem(STORE);if(r)return JSON.parse(r);}catch(e){}return seed();}
+function emptyState(){
+  const s=seed();
+  s.accounts=s.accounts.map(a=>({...a,start:0}));
+  s.goals=s.goals.map(g=>({...g,base:0}));
+  s.tx=[];
+  return s;
+}
+function loadState(){try{const r=localStorage.getItem(STORE);if(r)return JSON.parse(r);}catch(e){}return emptyState();}
 function persist(){try{localStorage.setItem(STORE,JSON.stringify(S));}catch(e){}}
 let S=loadState();
 let view='overview';
 let cur={y:new Date().getFullYear(),m:new Date().getMonth()};
-let modal=null;     // null | {type,goal}
-let form=null;
+let modal=null;     // null | {kind:'tx'|'account'|'settings'|'cats'|'cat'|'goal', id?}
+let form=null;      // transaction form
+let ef=null;        // edit form for account/category/goal
 
 const accById=()=>Object.fromEntries(S.accounts.map(a=>[a.id,a]));
 const catById=()=>Object.fromEntries(S.categories.map(c=>[c.id,c]));
@@ -220,7 +247,8 @@ function render(){
   const A=accById(),Cc=catById();
   document.getElementById('nw').textContent=eur(netWorth());
   document.getElementById('accrow').innerHTML=S.accounts.map(a=>
-    `<div class="acccard"><div class="n">${a.name}</div><div class="b">${eur(balance(a.id))}</div></div>`).join('');
+    `<div class="acccard" data-acct="${a.id}"><div class="n">${a.name}</div><div class="b">${eur(balance(a.id))}</div></div>`).join('')
+    +`<button class="addacc" data-newacct title="Νέος λογαριασμός">${icon('plus',18)}</button>`;
 
   const mt=monthTx();
   const income=mt.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
@@ -306,22 +334,51 @@ function txHTML(mt,A,Cc){
 function goalsHTML(){
   const total=S.goals.reduce((s,g)=>s+goalCur(g),0);
   return`<div class="goalhero"><div class="l">Συνολική αποταμίευση</div><div class="serif v">${eur(total)}</div></div>`+
-  S.goals.map(g=>{const c=goalCur(g),pct=Math.min(100,Math.round(c/g.target*100));
-    return`<div class="goal"><div class="top"><div><div class="gn">${g.name}</div><div class="gs">${eur(c)} από ${eur(g.target)}</div></div>
-      <button class="add" data-goal="${g.id}">+ Βάλε</button></div>
-      <div class="gbar"><div style="width:${pct}%"></div></div><div class="pct">${pct}%</div></div>`;}).join('');
+  S.goals.map(g=>{const c=goalCur(g),pct=g.target>0?Math.min(100,Math.round(c/g.target*100)):0;
+    return`<div class="goal"><div class="top"><div style="display:flex;align-items:center;gap:6px"><div><div class="gn">${g.name}</div><div class="gs">${eur(c)} από ${eur(g.target)}</div></div></div>
+      <div style="display:flex;align-items:center;gap:4px"><button class="goaledit" data-editgoal="${g.id}">${icon('edit',16)}</button><button class="add" data-goal="${g.id}">+ Βάλε</button></div></div>
+      <div class="gbar"><div style="width:${pct}%"></div></div><div class="pct">${pct}%</div></div>`;}).join('')+
+  `<button class="miniadd" data-newgoal>+ Νέος στόχος</button>`;
 }
 
 /* ---------- modal ---------- */
-function openModal(preset){modal=true;form={type:preset?.type||'expense',amount:'',cat:'',
-  acc:'acc_bank',from:'acc_bank',to:'acc_save',goal:preset?.goal||'',
-  date:new Date().toISOString().slice(0,10),note:''};render();}
-function closeModal(){modal=null;form=null;render();}
+const COLORS=['#C9543B','#3E5C76','#B8862F','#5B8C5A','#D08C42','#8A5A83','#4C9A9A','#998F7A','#2F7A5A','#7AA98F','#6B4E9E','#C77DA3'];
+
+function openTx(preset){
+  const firstNon=(S.accounts.find(a=>a.type!=='savings')||S.accounts[0]||{}).id;
+  const firstSav=(S.accounts.find(a=>a.type==='savings')||{}).id||'';
+  modal={kind:'tx'};
+  form={type:preset?.type||'expense',amount:'',cat:'',acc:firstNon,from:firstNon,to:firstSav,
+    goal:preset?.goal||'',date:new Date().toISOString().slice(0,10),note:''};
+  render();
+}
+function openAccount(id){const a=id&&S.accounts.find(x=>x.id===id);modal={kind:'account'};ef=a?{...a,isNew:false}:{name:'',type:'bank',start:0,isNew:true};render();}
+function openSettings(){modal={kind:'settings'};render();}
+function openCats(){modal={kind:'cats'};render();}
+function openCat(id){const c=id&&S.categories.find(x=>x.id===id);modal={kind:'cat'};ef=c?{...c,isNew:false}:{name:'',kind:'expense',color:COLORS[0],isNew:true};render();}
+function openGoal(id){const g=id&&S.goals.find(x=>x.id===id);modal={kind:'goal'};ef=g?{...g,isNew:false}:{name:'',target:'',isNew:true};render();}
+function closeModal(){modal=null;form=null;ef=null;render();}
+
 function renderModal(){
   const root=document.getElementById('modal-root');
   if(!modal){root.innerHTML='';return;}
+  let html='';
+  if(modal.kind==='tx')html=sheetTx();
+  else if(modal.kind==='account')html=sheetAccount();
+  else if(modal.kind==='settings')html=sheetSettings();
+  else if(modal.kind==='cats')html=sheetCats();
+  else if(modal.kind==='cat')html=sheetCat();
+  else if(modal.kind==='goal')html=sheetGoal();
+  root.innerHTML=`<div class="sheet-bg" data-bg><div class="sheet">${html}</div></div>`;
+  const b=(id,fn)=>{const el=document.getElementById(id);if(el)el.oninput=e=>fn(e.target.value);};
+  b('amt',v=>form.amount=v);b('date',v=>form.date=v);b('note',v=>form.note=v);
+  b('ef_name',v=>ef.name=v);b('ef_start',v=>ef.start=v);b('ef_target',v=>ef.target=v);
+}
+
+function sheetTx(){
   const A=S.accounts,types=[['expense','Έξοδο','expense'],['income','Έσοδο','income'],['transfer','Αποταμίευση','save']];
   const cats=S.categories.filter(c=>c.kind===form.type);
+  const sav=A.filter(a=>a.type==='savings'),non=A.filter(a=>a.type!=='savings');
   let mid='';
   if(form.type!=='transfer'){
     mid=`<div class="flab">Κατηγορία</div><div class="chips">
@@ -330,41 +387,93 @@ function renderModal(){
       ${A.map(a=>`<button class="chip" data-acc="${a.id}" style="${form.acc===a.id?'background:var(--ink);color:#fff;border-color:var(--ink)':''}">${a.name}</button>`).join('')}</div>`;
   }else{
     mid=`<div class="flab">Από</div><div class="chips">
-      ${A.filter(a=>a.type!=='savings').map(a=>`<button class="chip" data-from="${a.id}" style="${form.from===a.id?'background:var(--ink);color:#fff;border-color:var(--ink)':''}">${a.name}</button>`).join('')}</div>
+      ${non.map(a=>`<button class="chip" data-from="${a.id}" style="${form.from===a.id?'background:var(--ink);color:#fff;border-color:var(--ink)':''}">${a.name}</button>`).join('')}</div>
       <div class="flab">Προς</div><div class="chips">
-      ${A.filter(a=>a.type==='savings').map(a=>`<button class="chip" data-to="${a.id}" style="${form.to===a.id?'background:var(--ink);color:#fff;border-color:var(--ink)':''}">${a.name}</button>`).join('')}</div>
+      ${sav.length?sav.map(a=>`<button class="chip" data-to="${a.id}" style="${form.to===a.id?'background:var(--ink);color:#fff;border-color:var(--ink)':''}">${a.name}</button>`).join(''):`<span style="font-size:12px;color:var(--sub)">Φτιάξε πρώτα έναν λογαριασμό τύπου «Αποταμίευση».</span>`}</div>
       <div class="flab">Στόχος (προαιρετικά)</div><div class="chips">
       <button class="chip" data-gl="" style="${!form.goal?'background:var(--ink);color:#fff;border-color:var(--ink)':''}">Κανένας</button>
       ${S.goals.map(g=>`<button class="chip" data-gl="${g.id}" style="${form.goal===g.id?`background:var(--save);color:#fff;border-color:var(--save)`:''}">${g.name}</button>`).join('')}</div>`;
   }
-  const valid=parseFloat(form.amount)>0&&(form.type==='transfer'||form.cat);
-  root.innerHTML=`<div class="sheet-bg" data-bg><div class="sheet">
-    <div class="sh"><h3 class="serif">Νέα κίνηση</h3><button class="iconbtn" data-close>${icon('x',16)}</button></div>
+  const valid=parseFloat(form.amount)>0&&(form.type==='transfer'?form.to:form.cat);
+  return `<div class="sh"><h3 class="serif">Νέα κίνηση</h3><button class="iconbtn" data-close>${icon('x',16)}</button></div>
     <div class="seg">${types.map(t=>`<button data-type="${t[0]}" style="${form.type===t[0]?`background:var(--${t[2]});color:#fff`:''}">${t[1]}</button>`).join('')}</div>
     <div class="amtbox"><input id="amt" type="number" inputmode="decimal" placeholder="0" value="${form.amount}"><div class="cur">EUR €</div></div>
     ${mid}
     <div class="flab">Ημερομηνία</div><input id="date" class="fin" type="date" value="${form.date}">
     <div class="flab">Σημείωση</div><input id="note" class="fin" placeholder="π.χ. ψώνια εβδομάδας" value="${form.note}">
-    <button class="savebtn" data-save style="background:${valid?'var(--ink)':'var(--line)'};color:${valid?'var(--paper)':'var(--sub)'}">Αποθήκευση</button>
-  </div></div>`;
-  // keep typed values without forcing re-render
-  const amt=document.getElementById('amt');amt.oninput=e=>form.amount=e.target.value;
-  document.getElementById('date').oninput=e=>form.date=e.target.value;
-  document.getElementById('note').oninput=e=>form.note=e.target.value;
+    <button class="savebtn" data-save style="background:${valid?'var(--ink)':'var(--line)'};color:${valid?'var(--paper)':'var(--sub)'}">Αποθήκευση</button>`;
+}
+
+function sheetAccount(){
+  const types=[['cash','Μετρητά'],['bank','Τράπεζα'],['savings','Αποταμίευση']];
+  const used=!ef.isNew&&S.tx.some(t=>t.acc===ef.id||t.from===ef.id||t.to===ef.id);
+  const valid=(ef.name||'').trim().length>0;
+  return `<div class="sh"><h3 class="serif">${ef.isNew?'Νέος λογαριασμός':'Λογαριασμός'}</h3><button class="iconbtn" data-close>${icon('x',16)}</button></div>
+    <div class="flab">Όνομα</div><input id="ef_name" class="fin" placeholder="π.χ. Τράπεζα" value="${ef.name||''}">
+    <div class="flab">Τύπος</div><div class="chips">
+    ${types.map(t=>`<button class="chip" data-acctype="${t[0]}" style="${ef.type===t[0]?'background:var(--ink);color:#fff;border-color:var(--ink)':''}">${t[1]}</button>`).join('')}</div>
+    <div class="flab">Αρχικό υπόλοιπο (€)</div><input id="ef_start" class="fin" type="number" inputmode="decimal" placeholder="0" value="${ef.start??0}">
+    <button class="savebtn" data-acctsave style="background:${valid?'var(--ink)':'var(--line)'};color:${valid?'var(--paper)':'var(--sub)'}">Αποθήκευση</button>
+    ${!ef.isNew?(used?`<div style="font-size:12px;color:var(--sub);text-align:center;margin-top:12px">Δεν διαγράφεται όσο υπάρχουν κινήσεις σ' αυτόν.</div>`:`<button class="delbtn" data-acctdel>Διαγραφή λογαριασμού</button>`):''}`;
+}
+
+function sheetSettings(){
+  return `<div class="sh"><h3 class="serif">Ρυθμίσεις</h3><button class="iconbtn" data-close>${icon('x',16)}</button></div>
+    <button class="setrow" data-newacct><span>＋ Νέος λογαριασμός</span>${icon('chevR',16)}</button>
+    <button class="setrow" data-opencats><span>Διαχείριση κατηγοριών</span>${icon('chevR',16)}</button>
+    <button class="setrow danger" data-clearall><span>Διαγραφή όλων των δεδομένων</span>${icon('trash',16)}</button>`;
+}
+
+function sheetCats(){
+  const exp=S.categories.filter(c=>c.kind==='expense'),inc=S.categories.filter(c=>c.kind==='income');
+  const row=c=>`<div class="catrow"><span style="width:14px;height:14px;border-radius:50%;background:${c.color};flex-shrink:0"></span><span class="nm">${c.name}</span><button class="ed" data-editcat="${c.id}">${icon('edit',15)}</button></div>`;
+  return `<div class="sh"><h3 class="serif">Κατηγορίες</h3><button class="iconbtn" data-close>${icon('x',16)}</button></div>
+    <div class="grouplab">Έξοδα</div>${exp.map(row).join('')||'<div class="empty">—</div>'}
+    <div class="grouplab">Έσοδα</div>${inc.map(row).join('')||'<div class="empty">—</div>'}
+    <button class="miniadd" data-newcat>+ Νέα κατηγορία</button>`;
+}
+
+function sheetCat(){
+  const kinds=[['expense','Έξοδο'],['income','Έσοδο']];
+  const used=!ef.isNew&&S.tx.some(t=>t.cat===ef.id);
+  const valid=(ef.name||'').trim().length>0;
+  return `<div class="sh"><h3 class="serif">${ef.isNew?'Νέα κατηγορία':'Κατηγορία'}</h3><button class="iconbtn" data-close>${icon('x',16)}</button></div>
+    <div class="flab">Όνομα</div><input id="ef_name" class="fin" placeholder="π.χ. Σούπερ μάρκετ" value="${ef.name||''}">
+    <div class="flab">Τύπος</div><div class="chips">
+    ${kinds.map(k=>`<button class="chip" data-catkind="${k[0]}" style="${ef.kind===k[0]?'background:var(--ink);color:#fff;border-color:var(--ink)':''}">${k[1]}</button>`).join('')}</div>
+    <div class="flab">Χρώμα</div><div class="swatches">
+    ${COLORS.map(col=>`<button class="swatch ${ef.color===col?'sel':''}" data-color="${col}" style="background:${col}"></button>`).join('')}</div>
+    <button class="savebtn" data-catsave style="background:${valid?'var(--ink)':'var(--line)'};color:${valid?'var(--paper)':'var(--sub)'}">Αποθήκευση</button>
+    ${!ef.isNew?(used?`<div style="font-size:12px;color:var(--sub);text-align:center;margin-top:12px">Δεν διαγράφεται όσο χρησιμοποιείται σε κινήσεις.</div>`:`<button class="delbtn" data-catdel>Διαγραφή κατηγορίας</button>`):''}`;
+}
+
+function sheetGoal(){
+  const valid=(ef.name||'').trim().length>0&&parseFloat(ef.target)>0;
+  return `<div class="sh"><h3 class="serif">${ef.isNew?'Νέος στόχος':'Στόχος'}</h3><button class="iconbtn" data-close>${icon('x',16)}</button></div>
+    <div class="flab">Όνομα</div><input id="ef_name" class="fin" placeholder="π.χ. Διακοπές" value="${ef.name||''}">
+    <div class="flab">Ποσό-στόχος (€)</div><input id="ef_target" class="fin" type="number" inputmode="decimal" placeholder="0" value="${ef.target||''}">
+    <button class="savebtn" data-goalsave style="background:${valid?'var(--ink)':'var(--line)'};color:${valid?'var(--paper)':'var(--sub)'}">Αποθήκευση</button>
+    ${!ef.isNew?`<button class="delbtn" data-goaldel>Διαγραφή στόχου</button>`:''}`;
 }
 
 /* ---------- events ---------- */
 document.addEventListener('click',e=>{
-  const t=e.target.closest('[data-nav],[data-mo],[data-fab],[data-del],[data-goal],[data-bg],[data-close],[data-type],[data-cat],[data-acc],[data-from],[data-to],[data-gl],[data-save],#reset');
+  const t=e.target.closest('[data-nav],[data-mo],[data-fab],[data-del],[data-goal],[data-acct],[data-newacct],[data-editgoal],[data-newgoal],[data-bg],[data-close],[data-type],[data-cat],[data-acc],[data-from],[data-to],[data-gl],[data-save],[data-acctype],[data-acctsave],[data-acctdel],[data-opencats],[data-clearall],[data-newcat],[data-editcat],[data-catkind],[data-color],[data-catsave],[data-catdel],[data-goalsave],[data-goaldel],#settings]');
   if(!t)return;
-  if(t.id==='reset'){if(confirm('Διαγραφή όλων και επαναφορά demo;')){S=seed();persist();render();}return;}
+  // header / nav
+  if(t.id==='settings'){openSettings();return;}
   if(t.dataset.nav){view=t.dataset.nav;render();return;}
   if(t.dataset.mo){let m=cur.m+ +t.dataset.mo,y=cur.y;if(m<0){m=11;y--;}if(m>11){m=0;y++;}cur={y,m};render();return;}
-  if(t.hasAttribute('data-fab')){openModal();return;}
+  if(t.hasAttribute('data-fab')){openTx();return;}
   if(t.dataset.del){S.tx=S.tx.filter(x=>x.id!==t.dataset.del);persist();render();return;}
-  if(t.dataset.goal){openModal({type:'transfer',goal:t.dataset.goal});return;}
-  // modal interactions
-  if(t.hasAttribute('data-close')||t.hasAttribute('data-bg')&&t===e.target){closeModal();return;}
+  if(t.dataset.goal){openTx({type:'transfer',goal:t.dataset.goal});return;}
+  if(t.dataset.acct){openAccount(t.dataset.acct);return;}
+  if(t.hasAttribute('data-newacct')){openAccount();return;}
+  if(t.dataset.editgoal){openGoal(t.dataset.editgoal);return;}
+  if(t.hasAttribute('data-newgoal')){openGoal();return;}
+  // close
+  if(t.hasAttribute('data-close')||(t.hasAttribute('data-bg')&&t===e.target)){closeModal();return;}
+  // transaction sheet
   if(t.dataset.type){form.type=t.dataset.type;form.cat='';renderModal();return;}
   if(t.dataset.cat){form.cat=t.dataset.cat;renderModal();return;}
   if(t.dataset.acc){form.acc=t.dataset.acc;renderModal();return;}
@@ -373,12 +482,49 @@ document.addEventListener('click',e=>{
   if(t.hasAttribute('data-gl')){form.goal=t.dataset.gl;renderModal();return;}
   if(t.hasAttribute('data-save')){
     const a=parseFloat(form.amount);if(!(a>0))return;
-    if(form.type!=='transfer'&&!form.cat)return;
+    if(form.type==='transfer'?!form.to:!form.cat)return;
     const base={id:uid(),date:form.date,amount:a,type:form.type,note:form.note};
     if(form.type==='transfer')S.tx.push({...base,from:form.from,to:form.to,goal:form.goal||undefined});
     else S.tx.push({...base,cat:form.cat,acc:form.acc});
     persist();closeModal();return;
   }
+  // settings sheet
+  if(t.hasAttribute('data-opencats')){openCats();return;}
+  if(t.hasAttribute('data-clearall')){if(confirm('Να διαγραφούν ΟΛΑ τα δεδομένα και να ξεκινήσεις από καθαρή εικόνα;')){S=emptyState();persist();closeModal();}return;}
+  // account sheet
+  if(t.dataset.acctype){ef.type=t.dataset.acctype;renderModal();return;}
+  if(t.hasAttribute('data-acctsave')){
+    if(!(ef.name||'').trim())return;
+    const start=parseFloat(ef.start)||0;
+    if(ef.isNew)S.accounts.push({id:uid(),name:ef.name.trim(),type:ef.type,start});
+    else{const a=S.accounts.find(x=>x.id===ef.id);if(a){a.name=ef.name.trim();a.type=ef.type;a.start=start;}}
+    persist();closeModal();return;
+  }
+  if(t.hasAttribute('data-acctdel')){
+    if(S.accounts.length<=1){alert('Πρέπει να υπάρχει τουλάχιστον ένας λογαριασμός.');return;}
+    S.accounts=S.accounts.filter(x=>x.id!==ef.id);persist();closeModal();return;
+  }
+  // category sheets
+  if(t.hasAttribute('data-newcat')){openCat();return;}
+  if(t.dataset.editcat){openCat(t.dataset.editcat);return;}
+  if(t.dataset.catkind){ef.kind=t.dataset.catkind;renderModal();return;}
+  if(t.dataset.color){ef.color=t.dataset.color;renderModal();return;}
+  if(t.hasAttribute('data-catsave')){
+    if(!(ef.name||'').trim())return;
+    if(ef.isNew)S.categories.push({id:uid(),name:ef.name.trim(),kind:ef.kind,color:ef.color});
+    else{const c=S.categories.find(x=>x.id===ef.id);if(c){c.name=ef.name.trim();c.kind=ef.kind;c.color=ef.color;}}
+    persist();openCats();return;
+  }
+  if(t.hasAttribute('data-catdel')){S.categories=S.categories.filter(x=>x.id!==ef.id);persist();openCats();return;}
+  // goal sheet
+  if(t.hasAttribute('data-goalsave')){
+    if(!(ef.name||'').trim()||!(parseFloat(ef.target)>0))return;
+    const target=parseFloat(ef.target);
+    if(ef.isNew)S.goals.push({id:uid(),name:ef.name.trim(),target,base:0});
+    else{const g=S.goals.find(x=>x.id===ef.id);if(g){g.name=ef.name.trim();g.target=target;}}
+    persist();closeModal();return;
+  }
+  if(t.hasAttribute('data-goaldel')){S.goals=S.goals.filter(x=>x.id!==ef.id);persist();closeModal();return;}
 });
 render();
 
