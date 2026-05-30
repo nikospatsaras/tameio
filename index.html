@@ -1,0 +1,390 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Έσοδα & Έξοδα</title>
+<meta name="theme-color" content="#211F1C">
+<meta name="description" content="Προσωπικός διαχειριστής εσόδων, εξόδων και αποταμίευσης">
+<link rel="manifest" href="./manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ταμείο">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" href="./icon-192.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap');
+:root{
+  --paper:#F3EEE4; --card:#FFFFFF; --ink:#211F1C; --sub:#8C8475; --line:#E8E1D3;
+  --income:#2F7A5A; --expense:#C9543B; --save:#B8862F;
+  --incomeBg:#E7F0EA; --expenseBg:#F8E7E1; --saveBg:#F6ECD6;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#2A2724;font-family:'Manrope',system-ui,sans-serif;color:var(--ink);
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.serif{font-family:'Fraunces',Georgia,serif}
+.phone{background:var(--paper);width:412px;height:858px;border-radius:40px;overflow:hidden;
+  display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.5);position:relative}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input{font-family:inherit}
+.hdr{padding:32px 24px 16px;border-bottom:1px solid var(--line)}
+.lab{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--sub)}
+.nw{font-size:38px;font-weight:600;margin-top:4px}
+.iconbtn{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);color:var(--sub);
+  display:flex;align-items:center;justify-content:center}
+.iconbtn:hover{background:rgba(0,0,0,.04)}
+.accrow{display:flex;gap:8px;margin-top:16px}
+.acccard{flex:1;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:8px 12px}
+.acccard .n{font-size:10px;font-weight:600;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acccard .b{font-size:14px;font-weight:700;margin-top:2px}
+.body{flex:1;overflow-y:auto;padding:20px 24px}
+.mnav{display:flex;align-items:center;justify-content:space-between}
+.mnav .arr{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.mnav .arr:hover{background:rgba(0,0,0,.05)}
+.mnav .m{font-size:18px;font-weight:600}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:16px}
+.stat{border-radius:16px;padding:12px}
+.stat .l{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-top:6px}
+.stat .v{font-size:16px;font-weight:700;margin-top:2px;color:var(--ink)}
+.flowcard{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 16px}
+.flowtop{display:flex;justify-content:space-between;align-items:center}
+.flowtop .l{font-size:12px;font-weight:600;color:var(--sub)}
+.flowtop .v{font-size:18px;font-weight:600}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:8px;display:flex}
+.bar>span{height:100%;display:block}
+h3{font-size:20px;font-weight:600;margin:24px 0 8px}
+.donutcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;align-items:center;gap:16px}
+.donutwrap{width:110px;height:110px;position:relative;flex-shrink:0}
+.donutwrap .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.donutwrap .center .s{font-size:9px;font-weight:600;color:var(--sub)}
+.donutwrap .center .a{font-size:14px;font-weight:700}
+.legend{flex:1;display:flex;flex-direction:column;gap:6px}
+.legend .row{display:flex;align-items:center;gap:8px;font-size:12px}
+.legend .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.legend .vl{font-weight:600}
+.txlist{display:flex;flex-direction:column;gap:8px}
+.tx{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 12px}
+.tx .ic{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tx .mid{flex:1;min-width:0}
+.tx .t{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx .s{font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx .amt{font-size:14px;font-weight:700;flex-shrink:0}
+.tx .del{color:var(--sub);opacity:0;transition:.15s;flex-shrink:0}
+.tx:hover .del{opacity:1}
+.daygrp{margin-bottom:20px}
+.daygrp .dl{font-size:12px;font-weight:600;color:var(--sub);margin-bottom:8px;text-transform:capitalize}
+.goalhero{background:var(--ink);color:var(--paper);border-radius:16px;padding:16px 20px;margin-bottom:20px}
+.goalhero .l{font-size:12px;font-weight:600;opacity:.7}
+.goalhero .v{font-size:30px;font-weight:600;margin-top:4px}
+.goal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 20px;margin-bottom:16px}
+.goal .top{display:flex;justify-content:space-between;align-items:flex-start}
+.goal .gn{font-weight:700}
+.goal .gs{font-size:12px;color:var(--sub);margin-top:2px}
+.goal .add{background:var(--saveBg);color:var(--save);font-size:12px;font-weight:700;padding:6px 12px;border-radius:99px}
+.goal .gbar{margin-top:12px;height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.goal .gbar>div{height:100%;border-radius:99px;background:var(--save);transition:width .4s}
+.goal .pct{font-size:11px;font-weight:600;color:var(--sub);margin-top:6px;text-align:right}
+.empty{font-size:14px;color:var(--sub);text-align:center;padding:24px}
+.nav{background:var(--card);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-around;
+  padding:8px 24px 24px;position:relative}
+.navbtn{display:flex;flex-direction:column;align-items:center;gap:2px;width:60px;color:var(--sub)}
+.navbtn.active{color:var(--ink)}
+.navbtn .nl{font-size:10px;font-weight:600}
+.fab{position:absolute;left:50%;transform:translateX(-50%);top:-20px;width:64px;height:64px;border-radius:50%;
+  background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.fab:active{transform:translateX(-50%) scale(.95)}
+.sheet-bg{position:absolute;inset:0;background:rgba(33,31,28,.45);display:flex;align-items:flex-end;z-index:20}
+.sheet{width:100%;background:var(--paper);border-radius:32px 32px 0 0;padding:20px 24px 28px;max-height:90%;overflow-y:auto}
+.sheet .sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.sheet .sh h3{margin:0;font-size:24px}
+.seg{display:flex;gap:8px;padding:4px;border-radius:16px;background:var(--card);border:1px solid var(--line);margin-bottom:16px}
+.seg button{flex:1;padding:8px;border-radius:12px;font-size:14px;font-weight:700;color:var(--sub);transition:.15s}
+.amtbox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;text-align:center;margin-bottom:16px}
+.amtbox input{width:100%;text-align:center;font-size:48px;font-weight:600;background:transparent;border:none;outline:none;color:var(--ink)}
+.amtbox .cur{font-size:14px;font-weight:600;color:var(--sub)}
+.flab{font-size:12px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.chip{padding:6px 12px;border-radius:99px;font-size:14px;font-weight:600;border:1px solid var(--line);color:var(--ink);background:transparent}
+.fin{width:100%;border-radius:12px;padding:10px 12px;font-size:14px;outline:none;background:var(--card);border:1px solid var(--line);color:var(--ink);margin-bottom:16px}
+.savebtn{width:100%;padding:16px;border-radius:16px;font-weight:700;font-size:16px;transition:.1s}
+.savebtn:active{transform:scale(.99)}
+svg{display:block}
+</style>
+
+<div class="phone">
+  <div class="hdr">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div class="lab">Συνολικό υπόλοιπο</div>
+        <div class="serif nw" id="nw">€0</div>
+      </div>
+      <button class="iconbtn" id="reset" title="Επαναφορά">↻</button>
+    </div>
+    <div class="accrow" id="accrow"></div>
+  </div>
+  <div class="body" id="body"></div>
+  <div class="nav" id="nav"></div>
+  <div id="modal-root"></div>
+</div>
+
+<script>
+/* ---------- icons ---------- */
+const I = {
+  plus:'<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>',
+  up:'<path d="M7 17 17 7M9 7h8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+  down:'<path d="M7 7 17 17M17 9v8H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+  swap:'<path d="M7 9h11l-3-3M17 15H6l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
+  chevL:'<path d="M15 6 9 12l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
+  chevR:'<path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
+  x:'<path d="M6 6 18 18M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  grid:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/>',
+  list:'<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  target:'<circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="3.5" stroke="currentColor" stroke-width="2" fill="none"/>',
+  pig:'<path d="M4 11a6 6 0 0 1 12 0v3H4zM16 11l4-2v6l-4-2" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/>'
+};
+const icon=(n,s=20)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none">${I[n]}</svg>`;
+
+/* ---------- format ---------- */
+const eur=n=>new Intl.NumberFormat('el-GR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n||0);
+const MONTHS=['Ιανουάριος','Φεβρουάριος','Μάρτιος','Απρίλιος','Μάιος','Ιούνιος','Ιούλιος','Αύγουστος','Σεπτέμβριος','Οκτώβριος','Νοέμβριος','Δεκέμβριος'];
+const pad=x=>String(x).padStart(2,'0');
+const iso=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
+const uid=()=>Math.random().toString(36).slice(2,9);
+
+/* ---------- seed ---------- */
+function seed(){
+  const n=new Date(),y=n.getFullYear(),m=n.getMonth();
+  return{
+    accounts:[
+      {id:'acc_cash',name:'Μετρητά',type:'cash',start:120},
+      {id:'acc_bank',name:'Τράπεζα',type:'bank',start:850},
+      {id:'acc_save',name:'Αποταμίευση',type:'savings',start:1800}],
+    categories:[
+      {id:'c_rent',name:'Ενοίκιο',kind:'expense',color:'#3E5C76'},
+      {id:'c_market',name:'Σούπερ μάρκετ',kind:'expense',color:'#C9543B'},
+      {id:'c_bills',name:'Λογαριασμοί',kind:'expense',color:'#B8862F'},
+      {id:'c_transport',name:'Μεταφορές',kind:'expense',color:'#5B8C5A'},
+      {id:'c_eatout',name:'Φαγητό έξω',kind:'expense',color:'#D08C42'},
+      {id:'c_fun',name:'Διασκέδαση',kind:'expense',color:'#8A5A83'},
+      {id:'c_health',name:'Υγεία',kind:'expense',color:'#4C9A9A'},
+      {id:'c_other',name:'Άλλα',kind:'expense',color:'#998F7A'},
+      {id:'i_salary',name:'Μισθός',kind:'income',color:'#2F7A5A'},
+      {id:'i_free',name:'Freelance',kind:'income',color:'#3E8E6E'},
+      {id:'i_other',name:'Άλλα έσοδα',kind:'income',color:'#7AA98F'}],
+    goals:[
+      {id:'g_vac',name:'Διακοπές',target:1500,base:300},
+      {id:'g_emergency',name:'Έκτακτο ταμείο',target:5000,base:1500}],
+    tx:[
+      {id:uid(),date:iso(y,m,1),type:'income',amount:1600,cat:'i_salary',acc:'acc_bank',note:''},
+      {id:uid(),date:iso(y,m,12),type:'income',amount:450,cat:'i_free',acc:'acc_bank',note:'Project Narin'},
+      {id:uid(),date:iso(y,m,3),type:'expense',amount:480,cat:'c_rent',acc:'acc_bank',note:''},
+      {id:uid(),date:iso(y,m,5),type:'expense',amount:132,cat:'c_bills',acc:'acc_bank',note:'ΔΕΗ + ίντερνετ'},
+      {id:uid(),date:iso(y,m,4),type:'expense',amount:64,cat:'c_market',acc:'acc_cash',note:''},
+      {id:uid(),date:iso(y,m,11),type:'expense',amount:48,cat:'c_market',acc:'acc_bank',note:''},
+      {id:uid(),date:iso(y,m,19),type:'expense',amount:72,cat:'c_market',acc:'acc_cash',note:''},
+      {id:uid(),date:iso(y,m,6),type:'expense',amount:40,cat:'c_transport',acc:'acc_cash',note:'Βενζίνη'},
+      {id:uid(),date:iso(y,m,7),type:'expense',amount:28,cat:'c_eatout',acc:'acc_cash',note:''},
+      {id:uid(),date:iso(y,m,16),type:'expense',amount:35,cat:'c_eatout',acc:'acc_bank',note:''},
+      {id:uid(),date:iso(y,m,9),type:'expense',amount:22,cat:'c_fun',acc:'acc_cash',note:'Σινεμά'},
+      {id:uid(),date:iso(y,m,14),type:'expense',amount:25,cat:'c_health',acc:'acc_bank',note:'Φαρμακείο'},
+      {id:uid(),date:iso(y,m,2),type:'transfer',amount:300,from:'acc_bank',to:'acc_save',goal:'g_emergency',note:''},
+      {id:uid(),date:iso(y,m,15),type:'transfer',amount:100,from:'acc_bank',to:'acc_save',goal:'g_vac',note:''}]
+  };
+}
+
+/* ---------- state ---------- */
+const STORE='finance-tracker-v1';
+function loadState(){try{const r=localStorage.getItem(STORE);if(r)return JSON.parse(r);}catch(e){}return seed();}
+function persist(){try{localStorage.setItem(STORE,JSON.stringify(S));}catch(e){}}
+let S=loadState();
+let view='overview';
+let cur={y:new Date().getFullYear(),m:new Date().getMonth()};
+let modal=null;     // null | {type,goal}
+let form=null;
+
+const accById=()=>Object.fromEntries(S.accounts.map(a=>[a.id,a]));
+const catById=()=>Object.fromEntries(S.categories.map(c=>[c.id,c]));
+const balance=id=>{const a=accById()[id];let b=a.start;
+  for(const t of S.tx){
+    if(t.type==='income'&&t.acc===id)b+=t.amount;
+    else if(t.type==='expense'&&t.acc===id)b-=t.amount;
+    else if(t.type==='transfer'){if(t.from===id)b-=t.amount;if(t.to===id)b+=t.amount;}
+  } return b;};
+const netWorth=()=>S.accounts.reduce((s,a)=>s+balance(a.id),0);
+const mk=()=>iso(cur.y,cur.m,1).slice(0,7);
+const monthTx=()=>S.tx.filter(t=>t.date.slice(0,7)===mk());
+const goalCur=g=>g.base+S.tx.filter(t=>t.goal===g.id).reduce((s,t)=>s+t.amount,0);
+
+/* ---------- render ---------- */
+function render(){
+  const A=accById(),Cc=catById();
+  document.getElementById('nw').textContent=eur(netWorth());
+  document.getElementById('accrow').innerHTML=S.accounts.map(a=>
+    `<div class="acccard"><div class="n">${a.name}</div><div class="b">${eur(balance(a.id))}</div></div>`).join('');
+
+  const mt=monthTx();
+  const income=mt.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const expense=mt.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const saved=mt.filter(t=>t.type==='transfer'&&A[t.to]?.type==='savings').reduce((s,t)=>s+t.amount,0);
+
+  const body=document.getElementById('body');
+  if(view==='overview')body.innerHTML=overviewHTML(income,expense,saved,mt,A,Cc);
+  else if(view==='tx')body.innerHTML=txHTML(mt,A,Cc);
+  else body.innerHTML=goalsHTML();
+
+  document.getElementById('nav').innerHTML=
+    navBtn('overview','grid','Εικόνα')+navBtn('tx','list','Κινήσεις')+
+    `<div style="width:60px"></div>`+
+    navBtn('goals','target','Στόχοι')+`<div style="width:60px;visibility:hidden"></div>`+
+    `<button class="fab" data-fab>${icon('plus',28)}</button>`;
+
+  renderModal();
+}
+function navBtn(v,ic,l){return`<button class="navbtn ${view===v?'active':''}" data-nav="${v}">${icon(ic,20)}<span class="nl">${l}</span></button>`;}
+
+function monthNavHTML(){return`<div class="mnav"><button class="arr" data-mo="-1">${icon('chevL',18)}</button>
+  <span class="serif m">${MONTHS[cur.m]} ${cur.y}</span>
+  <button class="arr" data-mo="1">${icon('chevR',18)}</button></div>`;}
+
+function overviewHTML(income,expense,saved,mt,A,Cc){
+  const tot=Math.max(income,expense+saved,1);
+  const byCat={};mt.filter(t=>t.type==='expense').forEach(t=>byCat[t.cat]=(byCat[t.cat]||0)+t.amount);
+  const cats=Object.entries(byCat).map(([id,v])=>({...Cc[id],value:v})).sort((a,b)=>b.value-a.value);
+  const recent=[...mt].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+  return monthNavHTML()+
+  `<div class="stats">
+    ${stat('Έσοδα','up',income,'income','incomeBg')}
+    ${stat('Έξοδα','down',expense,'expense','expenseBg')}
+    ${stat('Αποταμ.','pig',saved,'save','saveBg')}
+  </div>
+  <div class="flowcard">
+    <div class="flowtop"><span class="l">Ροή μήνα (διαθέσιμα)</span><span class="serif v">${eur(income-expense-saved)}</span></div>
+    <div class="bar"><span style="width:${income/tot*100}%;background:var(--income)"></span></div>
+    <div class="bar"><span style="width:${expense/tot*100}%;background:var(--expense)"></span><span style="width:${saved/tot*100}%;background:var(--save)"></span></div>
+  </div>
+  <h3 class="serif">Πού πάνε τα λεφτά</h3>
+  ${cats.length?donutHTML(cats,expense):`<div class="empty">Δεν υπάρχουν έξοδα αυτόν τον μήνα.</div>`}
+  <h3 class="serif">Πρόσφατες κινήσεις</h3>
+  <div class="txlist">${recent.length?recent.map(t=>txRow(t,A,Cc,false)).join(''):`<div class="empty">Καμία κίνηση ακόμη.</div>`}</div>`;
+}
+function stat(l,ic,v,col,bg){return`<div class="stat" style="background:var(--${bg})">
+  <span style="color:var(--${col})">${icon(ic,16)}</span>
+  <div class="l" style="color:var(--${col})">${l}</div><div class="v">${eur(v)}</div></div>`;}
+
+function donutHTML(cats,total){
+  const r=40,circ=2*Math.PI*r;let off=0;
+  const segs=cats.map(c=>{const len=c.value/total*circ;const s=`<circle cx="55" cy="55" r="${r}" fill="none" stroke="${c.color}" stroke-width="15" stroke-dasharray="${len} ${circ-len}" stroke-dashoffset="${-off}" transform="rotate(-90 55 55)"/>`;off+=len;return s;}).join('');
+  return`<div class="donutcard">
+    <div class="donutwrap">
+      <svg width="110" height="110" viewBox="0 0 110 110">${segs}</svg>
+      <div class="center"><span class="s">Σύνολο</span><span class="a">${eur(total)}</span></div>
+    </div>
+    <div class="legend">${cats.slice(0,5).map(c=>`<div class="row"><span class="dot" style="background:${c.color}"></span><span class="nm">${c.name}</span><span class="vl">${eur(c.value)}</span></div>`).join('')}</div>
+  </div>`;
+}
+function txRow(t,A,Cc,del){
+  let ic,col,title,sub,sign;
+  if(t.type==='income'){ic='up';col='income';title=Cc[t.cat]?.name;sub=A[t.acc]?.name;sign='+';}
+  else if(t.type==='expense'){ic='down';col='expense';title=Cc[t.cat]?.name;sub=A[t.acc]?.name;sign='−';}
+  else{ic='swap';col='save';title='Αποταμίευση';sub=`${A[t.from]?.name} → ${A[t.to]?.name}`;sign='';}
+  const amtCol=t.type==='transfer'?'var(--ink)':`var(--${col})`;
+  return`<div class="tx">
+    <div class="ic" style="background:var(--${col});background:color-mix(in srgb,var(--${col}) 14%,#fff);color:var(--${col})">${icon(ic,16)}</div>
+    <div class="mid"><div class="t">${title}</div><div class="s">${t.note||sub}</div></div>
+    <div class="amt" style="color:${amtCol}">${sign}${eur(t.amount)}</div>
+    ${del?`<button class="del" data-del="${t.id}">${icon('x',15)}</button>`:''}
+  </div>`;
+}
+function txHTML(mt,A,Cc){
+  const sorted=[...mt].sort((a,b)=>b.date.localeCompare(a.date));
+  const groups={};sorted.forEach(t=>{(groups[t.date]=groups[t.date]||[]).push(t);});
+  const keys=Object.keys(groups);
+  return monthNavHTML()+`<div style="margin-top:16px">`+
+    (keys.length?keys.map(d=>`<div class="daygrp"><div class="dl">${new Date(d).toLocaleDateString('el-GR',{weekday:'long',day:'numeric',month:'long'})}</div>
+      <div class="txlist">${groups[d].map(t=>txRow(t,A,Cc,true)).join('')}</div></div>`).join(''):`<div class="empty">Καμία κίνηση αυτόν τον μήνα.</div>`)+`</div>`;
+}
+function goalsHTML(){
+  const total=S.goals.reduce((s,g)=>s+goalCur(g),0);
+  return`<div class="goalhero"><div class="l">Συνολική αποταμίευση</div><div class="serif v">${eur(total)}</div></div>`+
+  S.goals.map(g=>{const c=goalCur(g),pct=Math.min(100,Math.round(c/g.target*100));
+    return`<div class="goal"><div class="top"><div><div class="gn">${g.name}</div><div class="gs">${eur(c)} από ${eur(g.target)}</div></div>
+      <button class="add" data-goal="${g.id}">+ Βάλε</button></div>
+      <div class="gbar"><div style="width:${pct}%"></div></div><div class="pct">${pct}%</div></div>`;}).join('');
+}
+
+/* ---------- modal ---------- */
+function openModal(preset){modal=true;form={type:preset?.type||'expense',amount:'',cat:'',
+  acc:'acc_bank',from:'acc_bank',to:'acc_save',goal:preset?.goal||'',
+  date:new Date().toISOString().slice(0,10),note:''};render();}
+function closeModal(){modal=null;form=null;render();}
+function renderModal(){
+  const root=document.getElementById('modal-root');
+  if(!modal){root.innerHTML='';return;}
+  const A=S.accounts,types=[['expense','Έξοδο','expense'],['income','Έσοδο','income'],['transfer','Αποταμίευση','save']];
+  const cats=S.categories.filter(c=>c.kind===form.type);
+  let mid='';
+  if(form.type!=='transfer'){
+    mid=`<div class="flab">Κατηγορία</div><div class="chips">
+      ${cats.map(c=>`<button class="chip" data-cat="${c.id}" style="${form.cat===c.id?`background:${c.color};color:#fff;border-color:${c.color}`:''}">${c.name}</button>`).join('')}</div>
+      <div class="flab">Λογαριασμός</div><div class="chips">
+      ${A.map(a=>`<button class="chip" data-acc="${a.id}" style="${form.acc===a.id?'background:var(--ink);color:#fff;border-color:var(--ink)':''}">${a.name}</button>`).join('')}</div>`;
+  }else{
+    mid=`<div class="flab">Από</div><div class="chips">
+      ${A.filter(a=>a.type!=='savings').map(a=>`<button class="chip" data-from="${a.id}" style="${form.from===a.id?'background:var(--ink);color:#fff;border-color:var(--ink)':''}">${a.name}</button>`).join('')}</div>
+      <div class="flab">Προς</div><div class="chips">
+      ${A.filter(a=>a.type==='savings').map(a=>`<button class="chip" data-to="${a.id}" style="${form.to===a.id?'background:var(--ink);color:#fff;border-color:var(--ink)':''}">${a.name}</button>`).join('')}</div>
+      <div class="flab">Στόχος (προαιρετικά)</div><div class="chips">
+      <button class="chip" data-gl="" style="${!form.goal?'background:var(--ink);color:#fff;border-color:var(--ink)':''}">Κανένας</button>
+      ${S.goals.map(g=>`<button class="chip" data-gl="${g.id}" style="${form.goal===g.id?`background:var(--save);color:#fff;border-color:var(--save)`:''}">${g.name}</button>`).join('')}</div>`;
+  }
+  const valid=parseFloat(form.amount)>0&&(form.type==='transfer'||form.cat);
+  root.innerHTML=`<div class="sheet-bg" data-bg><div class="sheet">
+    <div class="sh"><h3 class="serif">Νέα κίνηση</h3><button class="iconbtn" data-close>${icon('x',16)}</button></div>
+    <div class="seg">${types.map(t=>`<button data-type="${t[0]}" style="${form.type===t[0]?`background:var(--${t[2]});color:#fff`:''}">${t[1]}</button>`).join('')}</div>
+    <div class="amtbox"><input id="amt" type="number" inputmode="decimal" placeholder="0" value="${form.amount}"><div class="cur">EUR €</div></div>
+    ${mid}
+    <div class="flab">Ημερομηνία</div><input id="date" class="fin" type="date" value="${form.date}">
+    <div class="flab">Σημείωση</div><input id="note" class="fin" placeholder="π.χ. ψώνια εβδομάδας" value="${form.note}">
+    <button class="savebtn" data-save style="background:${valid?'var(--ink)':'var(--line)'};color:${valid?'var(--paper)':'var(--sub)'}">Αποθήκευση</button>
+  </div></div>`;
+  // keep typed values without forcing re-render
+  const amt=document.getElementById('amt');amt.oninput=e=>form.amount=e.target.value;
+  document.getElementById('date').oninput=e=>form.date=e.target.value;
+  document.getElementById('note').oninput=e=>form.note=e.target.value;
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-nav],[data-mo],[data-fab],[data-del],[data-goal],[data-bg],[data-close],[data-type],[data-cat],[data-acc],[data-from],[data-to],[data-gl],[data-save],#reset');
+  if(!t)return;
+  if(t.id==='reset'){if(confirm('Διαγραφή όλων και επαναφορά demo;')){S=seed();persist();render();}return;}
+  if(t.dataset.nav){view=t.dataset.nav;render();return;}
+  if(t.dataset.mo){let m=cur.m+ +t.dataset.mo,y=cur.y;if(m<0){m=11;y--;}if(m>11){m=0;y++;}cur={y,m};render();return;}
+  if(t.hasAttribute('data-fab')){openModal();return;}
+  if(t.dataset.del){S.tx=S.tx.filter(x=>x.id!==t.dataset.del);persist();render();return;}
+  if(t.dataset.goal){openModal({type:'transfer',goal:t.dataset.goal});return;}
+  // modal interactions
+  if(t.hasAttribute('data-close')||t.hasAttribute('data-bg')&&t===e.target){closeModal();return;}
+  if(t.dataset.type){form.type=t.dataset.type;form.cat='';renderModal();return;}
+  if(t.dataset.cat){form.cat=t.dataset.cat;renderModal();return;}
+  if(t.dataset.acc){form.acc=t.dataset.acc;renderModal();return;}
+  if(t.dataset.from){form.from=t.dataset.from;renderModal();return;}
+  if(t.dataset.to){form.to=t.dataset.to;renderModal();return;}
+  if(t.hasAttribute('data-gl')){form.goal=t.dataset.gl;renderModal();return;}
+  if(t.hasAttribute('data-save')){
+    const a=parseFloat(form.amount);if(!(a>0))return;
+    if(form.type!=='transfer'&&!form.cat)return;
+    const base={id:uid(),date:form.date,amount:a,type:form.type,note:form.note};
+    if(form.type==='transfer')S.tx.push({...base,from:form.from,to:form.to,goal:form.goal||undefined});
+    else S.tx.push({...base,cat:form.cat,acc:form.acc});
+    persist();closeModal();return;
+  }
+});
+render();
+
+/* ---------- PWA service worker ---------- */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{});});
+}
+
+</script>
